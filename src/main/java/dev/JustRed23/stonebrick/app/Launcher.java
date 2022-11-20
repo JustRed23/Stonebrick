@@ -90,6 +90,7 @@ class Launcher {
             if (!error && !exitCalled.get()) {
                 try {
                     application.init();
+                    Config.rescan(false);
                 } catch (Throwable t) {
                     LOGGER.warn("Exception in Application init method");
                     initError = t;

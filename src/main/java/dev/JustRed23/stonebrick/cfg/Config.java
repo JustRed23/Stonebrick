@@ -1,5 +1,6 @@
 package dev.JustRed23.stonebrick.cfg;
 
+import dev.JustRed23.stonebrick.app.Application;
 import dev.JustRed23.stonebrick.cfg.parsers.IParser;
 import dev.JustRed23.stonebrick.exceptions.ConfigInitializationException;
 import dev.JustRed23.stonebrick.util.TripletMap;
@@ -21,6 +22,33 @@ public final class Config {
     private static Map<Class<?>, IParser<?>> parsers;
     private static Map<Class<?>, List<TripletMap<Field, String, Boolean>>> configurations;
 
+    private static final List<String>
+            packages = new ArrayList<>(),
+            scannedPackages = new ArrayList<>();
+
+    /**
+     * Adds a package to the list of packages to scan for configurables
+     * <p>
+     * NOTE: This method should be called in the init method of your {@link Application}
+     * @param packageName The package to recursively scan for configurables
+     */
+    public static void addScannablePackage(String packageName) {
+        if (!INITIALIZED)
+            throw new IllegalStateException("Config not initialized");
+        if (packageName.equals("dev.JustRed23"))
+            return;
+        packages.add(packageName);
+    }
+
+    /**
+     * Initializes the config system,
+     * this will scan all packages for configurables and initialize them,
+     * setting all fields marked with {@link ConfigField} to a value from the config file.
+     * If the config file does not exist it will be made automatically and all fields will be set to their default values.
+     * <p>
+     * NOTE: To add a package to scan for configurables, use the {@link #addScannablePackage(String)} method before calling this method.
+     * @throws ConfigInitializationException if the config directory could not be created
+     */
     public static void initialize() throws ConfigInitializationException {
         if (INITIALIZED)
             throw new IllegalStateException("Config already initialized");
@@ -35,19 +63,64 @@ public final class Config {
         }
 
         parsers = new HashMap<>();
+        System.out.println("==========Adding type parsers==========");
         mapParsers();
 
         configurations = new HashMap<>();
+        System.out.println("==========Mapping configurables==========");
         mapConfigurables("dev.JustRed23");
+        packages.forEach(Config::mapConfigurables);
+
+        System.out.println("==========Creating configuration files==========");
         createConfigurationIfNotExist();
 
+        System.out.println("==========Applying configurations from file==========");
         applyFromFile();
 
         System.out.println("=====Initialization complete=====");
     }
 
+    /**
+     * Rescans all packages for configurables, this is useful if you called {@link #addScannablePackage(String)} after the config system has been initialized
+     * @param force If true, the config system will not check if a rescan is actually needed
+     * @throws ConfigInitializationException if the config directory does not exist
+     */
+    public static void rescan(boolean force) throws ConfigInitializationException {
+        if (!INITIALIZED)
+            throw new IllegalStateException("Config not initialized");
+
+        if (!force && !rescanNeeded())
+            return;
+
+        if (!configDir.exists())
+            throw new ConfigInitializationException("Config directory does not exist");
+
+        System.out.println("=====Rescanning Config=====");
+
+        configurations.clear();
+        scannedPackages.clear();
+
+        System.out.println("==========Mapping configurables==========");
+        mapConfigurables("dev.JustRed23");
+        packages.forEach(Config::mapConfigurables);
+
+        System.out.println("==========Creating configuration files==========");
+        createConfigurationIfNotExist();
+
+        System.out.println("==========Applying configurations from file==========");
+        applyFromFile();
+
+        System.out.println("=====Rescan complete=====");
+    }
+
+    private static boolean rescanNeeded() {
+        if (packages.isEmpty())
+            return false;
+
+        return !scannedPackages.equals(packages);
+    }
+
     private static void mapParsers() {
-        System.out.println("==========Adding type parsers==========");
         Reflections reflections = new Reflections(Config.class.getPackageName() + ".parsers");
         reflections.getSubTypesOf(IParser.class).forEach(aClass -> {
             try {
@@ -68,10 +141,16 @@ public final class Config {
     }
 
     private static void mapConfigurables(String packageName) {
-        System.out.println("==========Mapping configurables==========");
         Reflections reflections = new Reflections(packageName);
         System.out.println("Looking for classes annotated with " + Configurable.class.getSimpleName() + " in package '" + packageName + "'");
-        reflections.getTypesAnnotatedWith(Configurable.class).forEach(configClass -> {
+        Set<Class<?>> annotated = reflections.getTypesAnnotatedWith(Configurable.class);
+
+        if (annotated.isEmpty()) {
+            System.out.println("\tNo classes found");
+            return;
+        }
+
+        annotated.forEach(configClass -> {
             System.out.println("\tFound config class: " + configClass.getSimpleName());
             System.out.println("\t\tLooking for fields annotated with " + ConfigField.class.getSimpleName());
             List<TripletMap<Field, String, Boolean>> fieldsWithDefaults = new ArrayList<>();
@@ -95,10 +174,10 @@ public final class Config {
             });
             configurations.put(configClass, fieldsWithDefaults);
         });
+        scannedPackages.add(packageName);
     }
 
     private static void createConfigurationIfNotExist() {
-        System.out.println("==========Creating configuration files==========");
         configurations.keySet().forEach(aClass -> {
             String name = aClass.getSimpleName();
             File configFile = new File(System.getProperty("user.dir") + File.separator + "config" + File.separator + name.toLowerCase() + ".cfg");
@@ -133,7 +212,6 @@ public final class Config {
     }
 
     private static void applyFromFile() throws ConfigInitializationException {
-        System.out.println("==========Applying configurations from file==========");
         List<ConfigInitializationException> exceptions = new ArrayList<>();
         configurations.keySet().forEach(aClass -> {
             String name = aClass.getSimpleName();
