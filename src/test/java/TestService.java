@@ -15,7 +15,7 @@ public class TestService extends Service {
     }
 
     public void run() throws Exception {
-        System.out.println("Test service ran " + ++count + " times");
+        System.out.println("Test service ran " + ++count + " time(s)");
         if (count > 2)
             throw new Exception("Test exception");
     }
