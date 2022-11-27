@@ -1,7 +1,7 @@
 package dev.JustRed23.stonebrick.net;
 
-import dev.JustRed23.stonebrick.cfg.ConfigField;
-import dev.JustRed23.stonebrick.cfg.Configurable;
+import dev.JustRed23.abcm.ConfigField;
+import dev.JustRed23.abcm.Configurable;
 
 @Configurable
 public final class NetworkConfig {

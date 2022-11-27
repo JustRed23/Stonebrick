@@ -3,19 +3,26 @@ plugins {
 }
 
 group 'dev.JustRed23'
-version '1.4'
+version '1.6'
 
 repositories {
     mavenCentral()
+    maven { url 'https://jitpack.io' }
 }
 
 dependencies {
     api 'org.jetbrains:annotations:23.0.0'
-    api 'org.slf4j:slf4j-api:2.0.3'
+    api 'org.slf4j:slf4j-api:2.0.4'
     api 'org.json:json:20220924'
 
     api 'org.jooq:jooq:3.17.5'
     api 'org.jsoup:jsoup:1.15.3'
+
+    api ('com.github.JustRed23:ABCM:1.2') {
+        exclude group: 'org.slf4j', module: 'slf4j-api'
+        exclude group: 'org.reflections', module: 'reflections'
+        exclude group: 'org.jetbrains', module: 'annotations'
+    }
 
     api ('com.zaxxer:HikariCP:5.0.1') {
         exclude group: 'org.slf4j', module: 'slf4j-api'

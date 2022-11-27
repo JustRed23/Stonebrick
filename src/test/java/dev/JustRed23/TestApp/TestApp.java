@@ -1,5 +1,6 @@
 package dev.JustRed23.TestApp;
 
+import dev.JustRed23.abcm.Config;
 import dev.JustRed23.stonebrick.app.Application;
 import dev.JustRed23.stonebrick.data.FileStructure;
 
@@ -24,6 +25,7 @@ public class TestApp extends Application {
     }
 
     public static void main(String[] args) {
+        Config.setDebug(true);
         launch(args);
     }
 }

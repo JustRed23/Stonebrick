@@ -1,7 +1,7 @@
+import dev.JustRed23.abcm.Config;
+import dev.JustRed23.abcm.exception.ConfigInitException;
 import dev.JustRed23.stonebrick.cache.types.ExpiringCache;
 import dev.JustRed23.stonebrick.cache.types.LRUCache;
-import dev.JustRed23.stonebrick.cfg.Config;
-import dev.JustRed23.stonebrick.exceptions.ConfigInitializationException;
 import org.junit.jupiter.api.Test;
 
 import java.util.concurrent.TimeUnit;
@@ -11,8 +11,8 @@ import static org.junit.jupiter.api.Assertions.*;
 class CacheTest {
 
     @Test
-    void testLRUCache() throws ConfigInitializationException {
-        Config.initialize();
+    void testLRUCache() throws ConfigInitException {
+        Config.init();
         LRUCache<String, String> cache = new LRUCache<>(1, TimeUnit.MINUTES, 10);
 
         for (int i = 0; i < 20; i++)
@@ -22,8 +22,8 @@ class CacheTest {
     }
 
     @Test
-    void testExpiringCache() throws ConfigInitializationException, InterruptedException {
-        Config.initialize();
+    void testExpiringCache() throws ConfigInitException, InterruptedException {
+        Config.init();
         ExpiringCache<String, String> cache = new ExpiringCache<>(10, TimeUnit.SECONDS);
 
         cache.put("Hello", "World");

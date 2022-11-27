@@ -1,3 +1,4 @@
+import dev.JustRed23.abcm.Config;
 import dev.JustRed23.stonebrick.app.Application;
 import org.junit.jupiter.api.Test;
 
@@ -7,6 +8,7 @@ class ApplicationTest {
 
     @Test
     void test_success() {
+        Config.setDebug(true);
         assertDoesNotThrow(() -> Application.launch(ApplicationTest$TestApp.class, new String[]{}));
     }
 

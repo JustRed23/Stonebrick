@@ -1,6 +1,7 @@
 package dev.JustRed23.stonebrick.app;
 
-import dev.JustRed23.stonebrick.cfg.Config;
+import dev.JustRed23.abcm.Config;
+import dev.JustRed23.stonebrick.cfg.LogLevelParser;
 import dev.JustRed23.stonebrick.data.FileStructure;
 import dev.JustRed23.stonebrick.log.SBLogger;
 import dev.JustRed23.stonebrick.net.NetworkManager;
@@ -61,7 +62,9 @@ class Launcher {
     private static volatile AtomicBoolean exitCalled = new AtomicBoolean(false);
 
     private static void launch(Class<? extends Application> appClass, String[] args) throws Exception {
-        Config.initialize();
+        Config.addParser(LogLevelParser.class);
+        Config.addScannable("dev.JustRed23");
+        Config.init();
         LOGGER = SBLogger.getLogger(appClass);
         LOGGER.info("Launching application {}", appClass.getName());
 
@@ -152,6 +155,7 @@ class Launcher {
             }
         } finally {
             CommonThreads.shutdown();
+            Config.destroy();
         }
     }
 
