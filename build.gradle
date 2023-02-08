@@ -18,7 +18,7 @@ dependencies {
     api 'org.jooq:jooq:3.17.5'
     api 'org.jsoup:jsoup:1.15.3'
 
-    api ('com.github.JustRed23:ABCM:1.7') {
+    api ('com.github.JustRed23:ABCM:1.8') {
         exclude group: 'org.slf4j', module: 'slf4j-api'
         exclude group: 'org.reflections', module: 'reflections'
         exclude group: 'org.jetbrains', module: 'annotations'
