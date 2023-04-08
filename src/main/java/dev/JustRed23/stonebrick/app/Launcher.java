@@ -104,17 +104,15 @@ class Launcher {
             FileStructure.init();
 
             if (!error && !exitCalled.get()) {
-                Application.runAndWait(() -> {
-                    try {
-                        startCalled.set(true);
-                        application.start();
-                        application.getServicePool().start();
-                    } catch (Throwable t) {
-                        LOGGER.warn("Exception in Application start method");
-                        startError = t;
-                        error = true;
-                    }
-                });
+                try {
+                    startCalled.set(true);
+                    application.start();
+                    application.getServicePool().start();
+                } catch (Throwable t) {
+                    LOGGER.warn("Exception in Application start method");
+                    startError = t;
+                    error = true;
+                }
             }
 
             //Wait for the app to shut down successfully
