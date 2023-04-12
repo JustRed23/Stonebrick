@@ -1,6 +1,8 @@
 package dev.JustRed23.stonebrick.data;
 
+import dev.JustRed23.stonebrick.log.SBLogger;
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
 
 import java.io.IOException;
 import java.nio.file.Paths;
@@ -10,18 +12,25 @@ import java.util.List;
 
 public class FileStructure {
 
+    private static final Logger LOGGER = SBLogger.getLogger(FileStructure.class);
+
     private static Class<?> fileStructure = DefaultFileStructure.class;
     private static boolean INITIALIZED = false;
 
     private static final List<Directory> mappedDirectories = new ArrayList<>();
     private static final List<File> mappedFiles = new ArrayList<>();
 
+    private static boolean disabled;
+
     public static void init() {
+        if (disabled)
+            return;
+
         if (INITIALIZED)
             throw new IllegalStateException("FileStructure has already been initialized");
         INITIALIZED = true;
-        System.out.println("=====Initializing File Structure=====");
-        System.out.println("File Structure: " + fileStructure.getName());
+        LOGGER.debug("=====Initializing File Structure=====");
+        LOGGER.debug("File Structure: " + fileStructure.getName());
         Arrays.stream(fileStructure.getDeclaredFields())
                 .filter(field -> field.isAnnotationPresent(dev.JustRed23.stonebrick.data.annotation.Directory.class))
                 .forEach(field -> {
@@ -32,7 +41,7 @@ public class FileStructure {
                         Directory directory = new Directory(Paths.get(field.getAnnotation(dev.JustRed23.stonebrick.data.annotation.Directory.class).path()));
                         mappedDirectories.add(directory);
                         field.set(field.getType(), directory);
-                        System.out.printf("Added directory %s%n", directory.getPath());
+                        LOGGER.debug("Added directory {}", directory.getPath());
                     } catch (IllegalAccessException e) {
                         throw new RuntimeException(e);
                     }
@@ -47,7 +56,7 @@ public class FileStructure {
 
                     Directory dir = getDirectory(annotation.directory());
                     if (dir == null) {
-                        System.out.printf("Could not find directory %s%n", annotation.directory());
+                        LOGGER.warn("Could not find directory {}", annotation.directory());
                         dir = Directory.ROOT;
                     }
 
@@ -56,15 +65,18 @@ public class FileStructure {
                         dir.getFiles().add(file);
                         mappedFiles.add(file);
                         field.set(field.getType(), file);
-                        System.out.printf("Added file %s%n", file.getPath());
+                        LOGGER.debug("Added file {}", file.getPath());
                     } catch (IOException | IllegalAccessException e) {
                         throw new RuntimeException(e);
                     }
                 });
-        System.out.println("=====Initialization complete=====");
+        LOGGER.debug("=====Initialization complete=====");
     }
 
     public static void discover(Class<?> fileStructure) {
+        if (disabled)
+            return;
+
         if (INITIALIZED)
             throw new IllegalStateException("FileStructure has already been initialized");
 
@@ -77,8 +89,12 @@ public class FileStructure {
             if (fileStructure.isAnnotationPresent(dev.JustRed23.stonebrick.data.annotation.FileStructure.class)) {
                 FileStructure.fileStructure = fileStructure;
             } else
-                System.err.println("File structure " + fileStructure.getName() + " is not annotated with @" + dev.JustRed23.stonebrick.data.annotation.FileStructure.class.getSimpleName());
+                LOGGER.error("File structure {} is not annotated with @{}", fileStructure.getName(), dev.JustRed23.stonebrick.data.annotation.FileStructure.class.getSimpleName());
         } else throw new RuntimeException("FileStructure already discovered as " + FileStructure.fileStructure.getName());
+    }
+
+    public static void disable() {
+        disabled = true;
     }
 
     @Nullable
