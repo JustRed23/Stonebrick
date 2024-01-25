@@ -15,7 +15,7 @@ dependencies {
     api 'org.slf4j:slf4j-api:2.0.9'
     api 'org.json:json:20231013'
 
-    api 'org.jooq:jooq:3.18.7'
+    api 'org.jooq:jooq:3.19.3'
     api 'org.jsoup:jsoup:1.16.2'
 
     api ('com.github.JustRed23:ABCM:2.0') {
